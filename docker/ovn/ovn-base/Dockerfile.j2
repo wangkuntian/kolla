@@ -11,6 +11,11 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
     {% set ovn_base_packages = [
         'openvswitch-ovn-common',
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set ovn_base_packages = [
+            'ovn',
+        ] %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
     {% set ovn_base_packages = [

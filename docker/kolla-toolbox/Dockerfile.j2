@@ -40,6 +40,25 @@ COPY apt_preferences_rabbitmq.{{ base_distro }} /etc/apt/preferences.d/rabbitmq
         'python3-devel',
         'rabbitmq-server-3.11.*'
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set kolla_toolbox_packages = [
+            'python3-crudini',
+            'erlang',
+            'gcc',
+            'gdisk',
+            'git',
+            'jq',
+            'libffi-devel',
+            'libxml2-devel',
+            'libxslt-devel',
+            'make',
+            'openssh-clients',
+            'openssl-devel',
+            'openvswitch',
+            'python3-devel',
+            'rabbitmq-server'
+        ] %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
     {% set kolla_toolbox_packages = [

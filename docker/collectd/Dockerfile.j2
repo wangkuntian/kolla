@@ -63,6 +63,29 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
       ] %}
   {% endif %}
 
+  {% if base_distro == 'openeuler' %}
+      {% set collectd_packages = collectd_packages
+        | reject('equalto', 'collectd-amqp1')
+        | reject('equalto', 'collectd-connectivity')
+        | reject('equalto', 'collectd-logparser')
+        | reject('equalto', 'collectd-ovs-events')
+        | reject('equalto', 'collectd-ovs-stats')
+        | reject('equalto', 'collectd-ping')
+        | reject('equalto', 'collectd-procevent')
+        | reject('equalto', 'collectd-snmp-agent')
+        | reject('equalto', 'collectd-sysevent')
+        | reject('equalto', 'collectd-pcie-errors')
+        | reject('equalto', 'collectd-pmu')
+        | reject('equalto', 'collectd-rdt')
+        | reject('equalto', 'collectd-turbostat')
+        | list %}
+      {% set collectd_packages = collectd_packages + [
+        'collectd-ovs_events',
+        'collectd-ovs_stats',
+        'collectd-snmp_agent'
+      ] %}
+  {% endif %}
+
 {% endif %}
 
 {{ macros.install_packages(collectd_packages | customizable("packages")) }}

@@ -23,6 +23,27 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
         ] %}
     {% endif %}
 
+    {% if base_distro == 'openeuler' %}
+        {% set ironic_pxe_packages = [
+            'grub2-tools',
+            'grub2-efi-*64',
+            'ipxe-bootimgs',
+            'shim',
+            'tftp-server',
+        ] %}
+
+        {% if base_arch in ['x86_64'] %}
+            {% set ironic_pxe_packages = ironic_pxe_packages + [
+                'grub2-efi-x64-modules',
+                'syslinux-tftpboot'
+            ] %}
+        {% elif base_arch in ['aarch64'] %}
+            {% set ironic_pxe_packages = ironic_pxe_packages + [
+                'grub2-efi-aa64-modules'
+            ] %}
+        {% endif %}
+    {% endif %}
+
 {{ macros.install_packages(ironic_pxe_packages | customizable("packages")) }}
 {% elif base_package_type == 'deb' %}
     {% set ironic_pxe_packages = [

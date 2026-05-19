@@ -9,6 +9,10 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 
 {{ macros.configure_user(name='influxdb') }}
 
+{% if base_distro == 'openeuler' %}
+RUN sed -i 's#rhel/$releasever/#rhel/9/#' /etc/yum.repos.d/influxdb.repo
+{% endif %}
+
 {{ macros.enable_extra_repos(['influxdb']) }}
 
 {% set influxdb_packages = ['influxdb'] %}

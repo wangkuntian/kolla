@@ -8,6 +8,11 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 {% import "macros.j2" as macros with context %}
 
 {% set hacluster_pcs_packages = ['pcs','crmsh'] %}
+
+{% if base_distro == 'openeuler' %}
+    {% set hacluster_pcs_packages = ['pcs'] %}
+{% endif %}
+
 {{ macros.install_packages(hacluster_pcs_packages | customizable("packages")) }}
 
 {% block hacluster_pcs_footer %}{% endblock %}
