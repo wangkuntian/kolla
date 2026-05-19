@@ -35,6 +35,12 @@ centos-aarch64:
   rabbitmq: "rabbitmq_rabbitmq-server"
   td-agent: "treasuredata"
 
+openeuler:
+  influxdb: "influxdb"
+  opensearch: "opensearch-2.x"
+  opensearch-dashboards: "opensearch-dashboards-2.x"
+  proxysql: "proxysql"
+
 debian:
   erlang-25:
     url: "https://ppa.launchpadcontent.net/rabbitmq/rabbitmq-erlang-25/ubuntu"

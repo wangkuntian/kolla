@@ -109,7 +109,7 @@ def handle_repos(context, reponames, mode):
         repo_list = repo_data['%s-%s' % (base_distro, base_arch)]
     except KeyError:
         # NOTE(hrw): Fallback to distro list
-        repo_list = repo_data[base_distro]
+        repo_list = repo_data.get(base_distro, {})
 
     for repo in reponames:
         try:

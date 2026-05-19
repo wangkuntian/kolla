@@ -651,6 +651,12 @@ class KollaWorkerTest(base.TestCase):
         kolla = build.KollaWorker(self.conf)
         self.assertEqual('3.9', kolla.distro_python_version)
 
+    def test_build_distro_python_version_openeuler(self):
+        """check distro_python_version for openEuler 24.03 LTS"""
+        self.conf.set_override('base', 'openeuler')
+        kolla = build.KollaWorker(self.conf)
+        self.assertEqual('3.11', kolla.distro_python_version)
+
     def test_build_distro_package_manager(self):
         """check distro_package_manager conf value is taken"""
         self.conf.set_override('distro_package_manager', 'foo')

@@ -52,6 +52,12 @@ COPY dnf.conf /etc/dnf/dnf.conf
 {% endblock %}
 {% endblock %}
 
+{% if base_distro == 'openeuler' %}
+RUN sed -i \
+        -e '/^metalink=/d' \
+        /etc/yum.repos.d/*.repo
+{% endif %}
+
 #### BEGIN REPO ENABLEMENT
 {% set base_yum_repo_files = [
     'grafana.repo',
@@ -102,6 +108,11 @@ COPY {{ repo_file }} /etc/yum.repos.d/{{ repo_file }}
     'langpacks-en',
     'glibc-all-langpacks'
 ] %}
+{% if base_distro == 'openeuler' %}
+    {% set base_centos_language_packages = [
+        'glibc-all-langpacks'
+    ] %}
+{% endif %}
 
 # NOTE(hrw): this macro file drops all languages other than C.UTF-8 so horizon fails
 # https://bugzilla.redhat.com/show_bug.cgi?id=1729770
@@ -136,6 +147,11 @@ RUN rm -f /etc/rpm/macros.image-language-conf \
     'centos-release-opstools',
     'epel-release',
 ] %}
+{% if base_distro == 'openeuler' %}
+    {% set base_centos_yum_repo_packages = [
+        'openstack-release-antelope',
+    ] %}
+{% endif %}
 
 # We need 'dnf-plugins-core' for 'dnf config-manager'
 {% set base_centos_yum_repo_packages = base_centos_yum_repo_packages + [
@@ -157,8 +173,19 @@ RUN rm -f /etc/rpm/macros.image-language-conf \
     'opensearch-2.x',
     'opensearch-dashboards-2.x',
 ] %}
+{% if base_distro == 'openeuler' %}
+    {% set base_centos_yum_repos_to_disable = [
+    ] %}
+{% endif %}
 
-RUN {{ macros.install_packages(base_centos_yum_repo_packages | customizable("centos_yum_repo_packages"), chain=True, clean=False) }}
+RUN {{ macros.install_packages(base_centos_yum_repo_packages | customizable("centos_yum_repo_packages"), chain=True, clean=False) }} \
+{% if base_distro == 'openeuler' -%}
+    && sed -i \
+        -e '/^metalink=/d' \
+        -e 's|https://repos.influxdata.com/rhel/$releasever/|https://repos.influxdata.com/rhel/9/|g' \
+        -e 's|https://repo.proxysql.com/ProxySQL/proxysql-2.4.x/almalinux/$releasever|https://repo.proxysql.com/ProxySQL/proxysql-2.4.x/almalinux/9|g' \
+        /etc/yum.repos.d/*.repo \
+{% endif -%}
 
 {%- for repo in base_centos_yum_repos_to_enable | customizable('centos_yum_repos_to_enable') %} && dnf config-manager --enable {{ repo }} {% endfor -%}
 
@@ -291,7 +318,7 @@ COPY apt_preferences /etc/apt/preferences.d/kolla-custom
 {# NOTE(hrw): type field defaults to 'asc' which is used for single keys #}
 {% set base_remote_apt_keys = [
    {'name': 'grafana', 'url': 'https://rpm.grafana.com/gpg.key'},
-   {'name': 'influxdb', 'url': 'https://repos.influxdata.com/influxdata-archive_compat.key'},
+   {'name': 'influxdb', 'url': 'https://repos.influxdata.com/influxdata-archive.key'},
    {'name': 'mariadb', 'url': 'https://downloads.mariadb.com/MariaDB/mariadb-keyring-2019.gpg', 'type': 'gpg'},
    {'name': 'opensearch', 'url': 'https://artifacts.opensearch.org/publickeys/opensearch.pgp'},
    {'name': 'proxysql', 'url': 'https://repo.proxysql.com/ProxySQL/proxysql-2.4.x/repo_pub_key'},

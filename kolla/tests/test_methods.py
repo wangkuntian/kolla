@@ -45,6 +45,56 @@ class MethodsTest(base.TestCase):
         expectCmd = ''
         self.assertEqual(expectCmd, result)
 
+    def test_enable_repos_missing_distro_repo_data(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'missingdistro',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['influxdb'],
+                                      'enable')
+        expectCmd = ''
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_influxdb(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['influxdb'],
+                                      'enable')
+        expectCmd = 'RUN dnf config-manager  --enable influxdb || true'
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_opensearch_dashboards(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars,
+                                      ['opensearch-dashboards'],
+                                      'enable')
+        expectCmd = 'RUN dnf config-manager  '
+        expectCmd += '--enable opensearch-dashboards-2.x || true'
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_opensearch(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['opensearch'],
+                                      'enable')
+        expectCmd = 'RUN dnf config-manager  --enable opensearch-2.x || true'
+        self.assertEqual(expectCmd, result)
+
     def test_enable_repos_centos_multiple(self):
         template_vars = {
             'base_arch': 'x86_64',

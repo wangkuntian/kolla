@@ -21,13 +21,14 @@ from kolla.common.users import USERS
 from kolla.version import version_info as version
 
 
-BASE_OS_DISTRO = ['centos', 'debian', 'rocky', 'ubuntu']
+BASE_OS_DISTRO = ['centos', 'debian', 'rocky', 'ubuntu', 'openeuler']
 BASE_ARCH = ['x86_64', 'aarch64']
 DEFAULT_BASE_TAGS = {
     'centos': {'name': 'quay.io/centos/centos', 'tag': 'stream9'},
     'debian': {'name': 'debian', 'tag': 'bullseye'},
     'rocky': {'name': 'quay.io/rockylinux/rockylinux', 'tag': '9'},
     'ubuntu': {'name': 'ubuntu', 'tag': '22.04'},
+    'openeuler': {'name': 'openeuler-24.03-lts', 'tag': 'latest'},
 }
 # NOTE(hrw): has to match PRETTY_NAME in /etc/os-release
 DISTRO_PRETTY_NAME = {
@@ -35,6 +36,7 @@ DISTRO_PRETTY_NAME = {
     'debian': 'Debian GNU/Linux 11 (bullseye)',
     'rocky': 'Rocky Linux 9.* (Blue Onyx)',
     'ubuntu': 'Ubuntu 22.04',
+    'openeuler': 'openEuler 24.03 (LTS)',
 }
 OPENSTACK_RELEASE = '2023.1'
 
