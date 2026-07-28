@@ -15,6 +15,7 @@ COPY curlrc /root/.curlrc
 # NOTE(yoctozepto): use a UTF-8 (Unicode) locale like standard image installs do
 # fixes issues arising from ascii fallback usage
 ENV LANG en_US.UTF-8
+RUN printf 'LANG=%s\n' "$LANG" >/etc/locale.conf
 {% endblock %}
 
 LABEL kolla_version="{{ kolla_version }}"

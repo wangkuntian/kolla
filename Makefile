@@ -14,6 +14,7 @@ BUILD_FLAGS ?= --cache --debug \
 	--openstack-release $(OPENSTACK_RELEASE) \
 	--base-image $(BASE_IMAGE) \
 	--base-tag $(BASE_TAG) \
+	--cache \
 	--nopull
 
 IMAGE ?=

@@ -34,7 +34,7 @@ EOF
     #   SSLCertificateFile: file '/etc/pki/tls/certs/localhost.crt' does not exist or is empty
     # Work around this by generating certificates manually.
     # NOTE(mnasiadka): in EL9 upgrade jobs gencerts is failing on wrong permissions to dhparams.pem
-    if [[ "${KOLLA_BASE_DISTRO}" =~ centos|rocky ]] && [[ ! -e /etc/pki/tls/certs/localhost.crt ]]; then
+    if [[ "${KOLLA_BASE_DISTRO}" =~ centos|rocky|openeuler ]] && [[ ! -e /etc/pki/tls/certs/localhost.crt ]]; then
         rm -f /tmp/dhparams.pem
         /usr/libexec/httpd-ssl-gencerts
     fi
@@ -45,7 +45,11 @@ LANG=C.UTF-8
 
 # Override the default locale if configured
 if [[ "${KOLLA_BASE_DISTRO}" =~ debian|ubuntu ]]; then
-    [ -f /etc/default/locale ] && . /etc/default/locale
+    if [ -f /etc/default/locale ]; then
+        . /etc/default/locale
+    fi
 else
-    [ -f /etc/locale.conf ] && . /etc/locale.conf
+    if [ -f /etc/locale.conf ]; then
+        . /etc/locale.conf
+    fi
 fi

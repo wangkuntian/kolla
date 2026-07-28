@@ -16,6 +16,7 @@ import requests
 import sys
 import tarfile
 import tempfile
+from pathlib import Path
 from unittest import mock
 
 from kolla.cmd import build as build_cmd
@@ -739,6 +740,19 @@ class KollaWorkerTest(base.TestCase):
         kolla = build.KollaWorker(self.conf)
         kolla.setup_working_dir()
         self.assertEqual('tmp/foo/docker', kolla.working_dir)
+
+    def test_openvswitch_base_openeuler_links_ovs_vswitchd(self):
+        self.conf.set_override('base', 'openeuler')
+        kolla = build.KollaWorker(self.conf)
+        kolla.setup_working_dir()
+        kolla.find_dockerfiles()
+        kolla.create_dockerfiles()
+
+        dockerfile = Path(kolla.working_dir) / 'openvswitch' / \
+            'openvswitch-base' / 'Dockerfile.j2'
+        self.assertIn(
+            'ln -sf /usr/sbin/ovs-vswitchd.nodpdk /usr/sbin/ovs-vswitchd',
+            dockerfile.read_text())
 
 
 class MainTest(base.TestCase):
