@@ -40,6 +40,44 @@ ADD plugins-archive /
     '/plugins/*'
 ] %}
 
+{% if base_distro == 'openeuler' %}
+    {% set horizon_pip_env = 'PIP_CONSTRAINT=/requirements/upper-constraints.txt PIP_BUILD_CONSTRAINT=/requirements/upper-constraints.txt' %}
+    {% set horizon_pip_extra_args = '--find-links /tmp/horizon-xstatic-wheels' %}
+    {% set horizon_xstatic_wheel_packages = [
+        'XStatic-Angular',
+        'XStatic-Angular-Bootstrap',
+        'XStatic-Angular-FileUpload',
+        'XStatic-Angular-Gettext',
+        'XStatic-Angular-lrdragndrop',
+        'XStatic-Angular-Schema-Form',
+        'XStatic-Bootstrap-Datepicker',
+        'XStatic-Bootstrap-SCSS',
+        'XStatic-bootswatch',
+        'XStatic-D3',
+        'XStatic-Hogan',
+        'XStatic-Font-Awesome',
+        'XStatic-Jasmine',
+        'XStatic-jQuery',
+        'XStatic-JQuery-Migrate',
+        'XStatic-JQuery.quicksearch',
+        'XStatic-JQuery.TableSorter',
+        'XStatic-jquery-ui',
+        'XStatic-JSEncrypt',
+        'XStatic-mdi',
+        'XStatic-objectpath',
+        'XStatic-Rickshaw',
+        'XStatic-roboto-fontface',
+        'XStatic-smart-table',
+        'XStatic-Spin',
+        'XStatic-term.js',
+        'XStatic-tv4',
+        'XStatic-Moment-Timezone',
+    ] %}
+{% else %}
+    {% set horizon_pip_env = '' %}
+    {% set horizon_pip_extra_args = '' %}
+{% endif %}
+
 COPY extend_start.sh /usr/local/bin/kolla_extend_start
 
 # NOTE(hrw): to install horizon from unpacked sources we cannot have it in upper-constraints.txt
@@ -51,8 +89,12 @@ COPY extend_start.sh /usr/local/bin/kolla_extend_start
 RUN ln -s horizon-source/* horizon \
     && {{ macros.upper_constraints_remove("horizon") }} \
     && echo "setuptools<82" > /tmp/horizon-build-constraints.txt \
+    {% if base_distro == 'openeuler' -%}
+    && mkdir -p /tmp/horizon-xstatic-wheels \
+    && {{ horizon_pip_env }} PIP_BUILD_CONSTRAINT=/tmp/horizon-build-constraints.txt python3 -m pip wheel --no-cache-dir -c /requirements/upper-constraints.txt -w /tmp/horizon-xstatic-wheels {{ horizon_xstatic_wheel_packages | join(' ') }} \
+    {% endif -%}
     && PIP_BUILD_CONSTRAINT=/tmp/horizon-build-constraints.txt \
-       {{ macros.install_pip(horizon_pip_packages | customizable("pip_packages")) }} \
+       {{ macros.install_pip(horizon_pip_packages | customizable("pip_packages"), extra_args=horizon_pip_extra_args, env=horizon_pip_env) }} \
     && mkdir -p /etc/openstack-dashboard \
     && cp -r /horizon/openstack_dashboard/conf/* /etc/openstack-dashboard/ \
     && cp /horizon/openstack_dashboard/local/local_settings.py.example /etc/openstack-dashboard/local_settings.py \
@@ -65,7 +107,7 @@ RUN ln -s horizon-source/* horizon \
     && ln -s /etc/openstack-dashboard/local_settings.d $local_settings_d \
     && cp /horizon/manage.py /var/lib/kolla/venv/bin/manage.py \
     && if [ "$(ls /plugins)" ]; then \
-           {{ macros.install_pip(horizon_plugins_pip_packages) }}; \
+           {{ macros.install_pip(horizon_plugins_pip_packages, extra_args=horizon_pip_extra_args, env=horizon_pip_env) }}; \
        fi \
     && for locale in  /var/lib/kolla/venv/lib/python3/site-packages/*/locale; do \
            (cd ${locale%/*} && /var/lib/kolla/venv/bin/django-admin compilemessages) \

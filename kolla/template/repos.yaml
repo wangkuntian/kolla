@@ -19,6 +19,47 @@ deb:
     component: "main"
     gpg_key: "opensearch.asc"
 
+openeuler:
+  ceph:
+    enabled: false
+  docker-ce:
+    baseurl: "https://download.docker.com/linux/centos/9/$basearch/stable"
+    gpgkey: "https://download.docker.com/linux/centos/gpg"
+    name: "docker-ce"
+  epel:
+    enabled: false
+  influxdb:
+    distro: True
+    name: "influxdb"
+  kolla_el10:
+    enabled: false
+  mariadb:
+    enabled: false
+  opensearch:
+    baseurl: "https://artifacts.opensearch.org/releases/bundle/opensearch/3.x/yum"
+    gpgkey: "https://artifacts.opensearch.org/publickeys/opensearch-release.pgp"
+    repo_gpgcheck: 1
+    name: "opensearch-3.x"
+  opensearch-dashboards:
+    baseurl: "https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/3.x/yum"
+    gpgkey: "https://artifacts.opensearch.org/publickeys/opensearch-release.pgp"
+    repo_gpgcheck: 1
+    name: "opensearch-dashboards-3.x"
+  openvswitch:
+    enabled: false
+  openstack-antelope:
+    baseurl: "https://repo.openeuler.org/openEuler-24.03-LTS-SP4/EPOL/multi_version/OpenStack/Antelope/$basearch"
+    gpgkey: "https://repo.openeuler.org/openEuler-24.03-LTS-SP4/OS/$basearch/RPM-GPG-KEY-openEuler"
+    name: "openstack-antelope"
+  proxysql:
+    baseurl: "https://repo.proxysql.com/ProxySQL/proxysql-3.0.x/almalinux/9"
+    gpgkey: "https://repo.proxysql.com/ProxySQL/proxysql-3.0.x/repo_pub_key"
+    name: "proxysql"
+  valkey:
+    baseurl: "https://repo.openeuler.org/openEuler-25.09/everything/$basearch"
+    gpgkey: "https://repo.openeuler.org/openEuler-25.09/OS/$basearch/RPM-GPG-KEY-openEuler"
+    name: "openeuler-25.09-everything"
+
 debian:
   erlang:
     url: "https://ppa.launchpadcontent.net/rabbitmq/rabbitmq-erlang/ubuntu"

@@ -3,10 +3,13 @@
 # Copy custom CA certificates to system trusted CA certificates folder
 # and run CA update utility
 
-if [[ -e "/etc/debian_version" ]]; then
+os_release_dir="${KOLLA_OS_RELEASE_DIR:-/etc}"
+
+if [[ -e "${os_release_dir}/debian_version" ]]; then
     ca_dst_path="/usr/local/share/ca-certificates"
     update_command="update-ca-certificates"
-elif [[ -e "/etc/redhat-release" ]]; then
+elif [[ -e "${os_release_dir}/redhat-release" || \
+        -e "${os_release_dir}/openEuler-release" ]]; then
     ca_dst_path="/etc/pki/ca-trust/source/anchors"
     update_command="update-ca-trust"
 else

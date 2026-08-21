@@ -10,11 +10,25 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 
 {% if base_package_type == 'rpm' %}
 
+{% if base_distro == 'openeuler' %}
+{% set ovs_dpdk_packages = [
+    'python3-crudini',
+    'dpdk-devel',
+    'openvswitch',
+    'openvswitch-dpdk'
+] %}
+
+{{ macros.install_packages(ovs_dpdk_packages | customizable("packages")) }}
+
+{% else %}
+
 #TODO(sean-k-mooney) create repo via open suse build system to package
 # for centos distro.
 
 RUN echo 'image not yet available for {{ base_distro }}' \
     && /bin/false
+
+{% endif %}
 
 {% elif base_package_type == 'deb' %}
 

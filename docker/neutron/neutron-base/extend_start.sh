@@ -24,6 +24,9 @@ if [[ ! ${KOLLA_BASE_DISTRO} =~ centos|rocky ]]; then
         if [[ $KOLLA_LEGACY_IPTABLES == "true" ]]; then
             sudo /usr/bin/update-alternatives --set iptables /usr/sbin/iptables-legacy
             sudo /usr/bin/update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+        elif [[ ${KOLLA_BASE_DISTRO} == "openeuler" ]]; then
+            sudo /usr/bin/update-alternatives --set iptables /usr/sbin/iptables-nft
+            sudo /usr/bin/update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
         else
             sudo /usr/bin/update-alternatives --auto iptables
             sudo /usr/bin/update-alternatives --auto ip6tables

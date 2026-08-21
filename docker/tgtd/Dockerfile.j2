@@ -9,8 +9,18 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 
 {% if base_package_type == 'rpm' %}
 
+{% if base_distro == 'openeuler' %}
+    {% set tgtd_packages = ['scsi-target-utils'] %}
+
+{{ macros.install_packages(tgtd_packages | customizable("packages")) }}
+RUN sed -i '1 i include /var/lib/cinder/volumes/*' /etc/tgt/targets.conf
+
+{% else %}
+
 RUN echo 'Not available for {{ base_distro }}' \
     && /bin/false
+
+{% endif %}
 
 {% elif base_package_type == 'deb' %}
     {% set tgtd_packages = ['tgt'] %}

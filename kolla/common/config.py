@@ -21,12 +21,13 @@ from kolla.common.users import USERS
 from kolla.version import version_info as version
 
 
-BASE_OS_DISTRO = ['centos', 'debian', 'rocky', 'ubuntu']
+BASE_OS_DISTRO = ['centos', 'debian', 'openeuler', 'rocky', 'ubuntu']
 BASE_ARCH = ['x86_64', 'aarch64']
 DEBIAN_ARCH = ['amd64', 'arm64']
 DEFAULT_BASE_TAGS = {
     'centos': {'name': 'quay.io/centos/centos', 'tag': 'stream10'},
     'debian': {'name': 'debian', 'tag': 'trixie'},
+    'openeuler': {'name': 'openeuler/openeuler', 'tag': '24.03-lts-sp4'},
     'rocky': {'name': 'quay.io/rockylinux/rockylinux', 'tag': '10'},
     'ubuntu': {'name': 'ubuntu', 'tag': '24.04'},
 }
@@ -34,6 +35,7 @@ DEFAULT_BASE_TAGS = {
 DISTRO_PRETTY_NAME = {
     'centos': 'CentOS Stream 10',
     'debian': 'Debian GNU/Linux 13 (trixie)',
+    'openeuler': 'openEuler 24.03',
     'rocky': 'Rocky Linux 10.* (Red Quartz)',
     'ubuntu': 'Ubuntu 24.04.* LTS',
 }

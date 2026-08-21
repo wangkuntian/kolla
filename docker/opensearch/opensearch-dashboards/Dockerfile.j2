@@ -13,7 +13,15 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 {% set opensearch_dashboards_packages = ['opensearch-dashboards'] %}
 
 {{ macros.install_packages(opensearch_dashboards_packages | customizable("packages")) }} \
-    && chown -R opensearch-dashboards:opensearch-dashboards /usr/share/opensearch-dashboards
+    && chown -R opensearch-dashboards:opensearch-dashboards /usr/share/opensearch-dashboards \
+    && mkdir -p /var/lib/opensearch-dashboards /var/log/opensearch-dashboards \
+    && chown -R opensearch-dashboards:opensearch-dashboards \
+        /var/lib/opensearch-dashboards \
+        /var/log/opensearch-dashboards \
+    && if [ -d /usr/share/opensearch-dashboards/plugins/securityDashboards ]; then \
+        chown opensearch-dashboards:opensearch-dashboards /usr/share/opensearch-dashboards/plugins; \
+        chown -R opensearch-dashboards:opensearch-dashboards /usr/share/opensearch-dashboards/plugins/securityDashboards; \
+    fi
 
 COPY extend_start.sh /usr/local/bin/kolla_extend_start
 RUN chmod 755 /usr/local/bin/kolla_extend_start

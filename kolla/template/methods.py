@@ -131,7 +131,12 @@ def handle_repos(context, reponames, mode):
                     repo_data.get('%s-%s' % (base_distro, base_arch), dict())
     except KeyError:
         # NOTE(hrw): Fallback to distro list
-        repo_list = repo_data[base_distro]
+        repo_list = repo_data.get(base_distro, {})
+
+    reponames = [
+        repo for repo in reponames
+        if repo_list.get(repo, {}).get('enabled') is not False
+    ]
 
     for index, repo in enumerate(reponames):
         try:

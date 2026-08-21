@@ -17,6 +17,7 @@ import requests
 import sys
 import tarfile
 import tempfile
+from pathlib import Path
 from unittest import mock
 
 from kolla.cmd import build as build_cmd
@@ -504,7 +505,7 @@ class KollaWorkerTest(base.TestCase):
         self.mock_client = patcher.start()
 
     def test_supported_base_distro(self):
-        build_base = ['centos', 'debian', 'ubuntu']
+        build_base = ['centos', 'debian', 'openeuler', 'ubuntu']
 
         for base_distro in build_base:
             self.conf.set_override('base', base_distro)
@@ -756,6 +757,12 @@ class KollaWorkerTest(base.TestCase):
         kolla = build.KollaWorker(self.conf)
         self.assertEqual('apt', kolla.distro_package_manager)
 
+    def test_build_distro_package_manager_openeuler(self):
+        """check distro_package_manager dnf for openeuler"""
+        self.conf.set_override('base', 'openeuler')
+        kolla = build.KollaWorker(self.conf)
+        self.assertEqual('dnf', kolla.distro_package_manager)
+
     def test_base_package_type(self):
         """check base_package_type conf value is taken"""
         self.conf.set_override('base_package_type', 'pip')
@@ -767,6 +774,12 @@ class KollaWorkerTest(base.TestCase):
         self.conf.set_override('base', 'debian')
         kolla = build.KollaWorker(self.conf)
         self.assertEqual('deb', kolla.base_package_type)
+
+    def test_base_package_type_openeuler(self):
+        """check base_package_type rpm for openeuler"""
+        self.conf.set_override('base', 'openeuler')
+        kolla = build.KollaWorker(self.conf)
+        self.assertEqual('rpm', kolla.base_package_type)
 
     def test_pre_defined_exist_profile(self):
         # default profile include the fake image: image-base
@@ -867,6 +880,94 @@ class KollaWorkerTest(base.TestCase):
         kolla = build.KollaWorker(self.conf)
         kolla.setup_working_dir()
         self.assertEqual('tmp/foo/docker', kolla.working_dir)
+
+    def test_openvswitch_base_openeuler_links_ovs_vswitchd(self):
+        self.conf.set_override('base', 'openeuler')
+        self.conf.set_override(
+            'docker_dir', [str(Path(__file__).resolve().parents[2] /
+                               'docker')])
+        kolla = build.KollaWorker(self.conf)
+        kolla.setup_working_dir()
+        dockerfile_paths = [
+            Path('bifrost/bifrost-base'),
+            Path('httpd'),
+            Path('keepalived'),
+            Path('kolla-toolbox'),
+            Path('manila/manila-base'),
+            Path('neutron/neutron-base'),
+            Path('nova/nova-base'),
+            Path('nova/nova-libvirt'),
+            Path('octavia/octavia-base'),
+            Path('opensearch/opensearch'),
+            Path('opensearch/opensearch-dashboards'),
+            Path('openvswitch/openvswitch-base'),
+            Path('proxysql'),
+            Path('valkey/valkey-base'),
+            Path('valkey/valkey-sentinel'),
+            Path('valkey/valkey-server'),
+        ]
+        kolla.docker_build_paths = [
+            str(Path(kolla.working_dir) / path) for path in dockerfile_paths]
+        kolla.create_dockerfiles()
+
+        dockerfile = Path(kolla.working_dir) / 'openvswitch' / \
+            'openvswitch-base' / 'Dockerfile'
+        self.assertIn(
+            'ln -sf /usr/sbin/ovs-vswitchd.nodpdk /usr/sbin/ovs-vswitchd',
+            dockerfile.read_text())
+        dockerfile = Path(kolla.working_dir) / 'nova' / 'nova-libvirt' / \
+            'Dockerfile'
+        self.assertIn('qemu-block-rbd', dockerfile.read_text())
+        for dockerfile_path in kolla.docker_build_paths:
+            content = (Path(dockerfile_path) / 'Dockerfile').read_text()
+            self.assertNotIn('openvswitch${KOLLA_RPM_OVS_VERSION}', content)
+            self.assertNotIn('python3-openvswitch${KOLLA_RPM_OVS_VERSION}',
+                             content)
+            self.assertNotIn('MariaDB-client', content)
+            self.assertNotIn('dlm.mariadb.com', content)
+            self.assertNotIn('rhel/$releasever', content)
+            self.assertNotIn('$releasever', content)
+            self.assertNotIn('mod_auth_mellon', content)
+            self.assertNotIn('config-manager --enable opensearch', content)
+        bifrost_content = (Path(kolla.working_dir) / 'bifrost' /
+                           'bifrost-base' / 'Dockerfile').read_text()
+        self.assertIn("'shim_efi_package: shim'", bifrost_content)
+        self.assertIn('timeout: 300', bifrost_content)
+        self.assertIn('export https_proxy="${https_proxy:-${HTTPS_PROXY:-}}"',
+                      bifrost_content)
+        valkey_server_content = (Path(kolla.working_dir) / 'valkey' /
+                                 'valkey-server' / 'Dockerfile').read_text()
+        self.assertIn('openEuler-25.09/everything', valkey_server_content)
+        self.assertIn('dnf -y install valkey', valkey_server_content)
+        self.assertNotIn('dnf -y install redis', valkey_server_content)
+        valkey_sentinel_content = (Path(kolla.working_dir) / 'valkey' /
+                                   'valkey-sentinel' /
+                                   'Dockerfile').read_text()
+        self.assertIn('openEuler-25.09/everything', valkey_sentinel_content)
+        self.assertIn('dnf -y install valkey', valkey_sentinel_content)
+        self.assertNotIn('dnf -y install redis', valkey_sentinel_content)
+        toolbox_content = (Path(kolla.working_dir) / 'kolla-toolbox' /
+                           'Dockerfile').read_text()
+        self.assertIn('ansible-core==2.19.*', toolbox_content)
+        self.assertNotIn('ansible-core==2.20.*', toolbox_content)
+
+    def test_ovn_base_openeuler_enables_openstack_antelope(self):
+        self.conf.set_override('base', 'openeuler')
+        self.conf.set_override(
+            'docker_dir', [str(Path(__file__).resolve().parents[2] /
+                               'docker')])
+        kolla = build.KollaWorker(self.conf)
+        kolla.setup_working_dir()
+        kolla.docker_build_paths = [
+            str(Path(kolla.working_dir) / 'ovn' / 'ovn-base')]
+        kolla.create_dockerfiles()
+
+        dockerfile = Path(kolla.working_dir) / 'ovn' / 'ovn-base' / \
+            'Dockerfile'
+        content = dockerfile.read_text()
+        self.assertIn('openstack-antelope', content)
+        self.assertIn('EPOL/multi_version/OpenStack/Antelope/$basearch',
+                      content)
 
 
 class MainTest(base.TestCase):

@@ -42,6 +42,25 @@ COPY apt_preferences_rabbitmq.{{ base_distro }} /etc/apt/preferences.d/rabbitmq
         'python3-devel',
         'rabbitmq-server-4.2.*'
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set kolla_toolbox_packages = [
+            'python3-crudini',
+            'erlang',
+            'gcc',
+            'gdisk',
+            'git',
+            'jq',
+            'libffi-devel',
+            'libxml2-devel',
+            'libxslt-devel',
+            'make',
+            'openssh-clients',
+            'openssl-devel',
+            'openvswitch',
+            'python3-devel',
+            'rabbitmq-server'
+        ] %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
     {% set kolla_toolbox_packages = [
@@ -81,8 +100,13 @@ RUN case "$UPPER_CONSTRAINTS_FILE" in \
 
 ENV PATH {{ venv_path }}/bin:$PATH
 
+{% set ansible_core_version = '2.20.*' %}
+{% if base_distro == 'openeuler' %}
+    {% set ansible_core_version = '2.19.*' %}
+{% endif %}
+
 {% set kolla_toolbox_pip_packages = [
-        'ansible-core==2.20.*',
+        'ansible-core==' + ansible_core_version,
         'ansible-runner',
         'cmd2',
         'openstacksdk',

@@ -7,13 +7,42 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 
 {% block prometheus_libvirt_exporter_header %}{% endblock %}
 
+{% if base_distro == 'openeuler' %}
+    {% set prometheus_libvirt_exporter_packages = [
+        'gcc',
+        'git',
+        'go',
+        'libvirt-devel',
+        'pkg-config',
+    ] %}
+{% endif %}
+
 {{ macros.install_packages(prometheus_libvirt_exporter_packages | customizable("packages")) }}
 
 {% block prometheus_libvirt_exporter_install %}
+{% if base_distro == 'openeuler' %}
+{% block prometheus_libvirt_exporter_version %}
+ARG prometheus_libvirt_exporter_version=2.3.3
+ARG prometheus_libvirt_exporter_path=github.com/Tinkoff/libvirt-exporter
+ARG prometheus_libvirt_exporter_goproxy=https://goproxy.cn,direct
+ARG prometheus_libvirt_exporter_gosumdb=off
+{% endblock %}
+
+ENV GOPATH=/build \
+    GOPROXY=${prometheus_libvirt_exporter_goproxy} \
+    GOSUMDB=${prometheus_libvirt_exporter_gosumdb}
+RUN go mod init libvirt-exporter \
+    && cd ${GOPATH} \
+    && go get -v ${prometheus_libvirt_exporter_path}@${prometheus_libvirt_exporter_version} \
+    && go build ${prometheus_libvirt_exporter_path} \
+    && mv /build/libvirt-exporter /opt \
+    && rm -rf /build
+{% else %}
 ADD prometheus-libvirt-exporter-archive /prometheus-libvirt-exporter-source
 
 RUN ln -s /prometheus-libvirt-exporter-source/* prometheus-libvirt-exporter \
     && cp /prometheus-libvirt-exporter/prometheus-libvirt-exporter /opt/libvirt-exporter
+{% endif %}
 
 {% endblock %}
 

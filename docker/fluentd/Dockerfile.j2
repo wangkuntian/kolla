@@ -1,6 +1,11 @@
 FROM {{ namespace }}/{{ image_prefix }}base:{{ tag }}
 
 {% set fluentd_user = 'fluentd' %}
+{% set fluentd_gem_cmd = 'fluent-gem' %}
+{% set fluentd_set_nofile = True %}
+{% if base_distro == 'openeuler' %}
+    {% set fluentd_set_nofile = False %}
+{% endif %}
 
 {% block labels %}
 LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build_date }}" fluentd_binary="fluentd" fluentd_user="{{ fluentd_user }}"
@@ -10,7 +15,9 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 
 {% import "macros.j2" as macros with context %}
 
+{% if base_distro != 'openeuler' %}
 {{ macros.enable_extra_repos(['fluentd']) }}
+{% endif %}
 
 {% if base_package_type == 'rpm' %}
 
@@ -19,6 +26,16 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
         'make',
         'fluent-package',
     ] %}
+
+    {% if base_distro == 'openeuler' %}
+        {% set fluentd_packages = [
+            'gcc-c++',
+            'make',
+            'openEuler-rpm-config',
+            'ruby-devel',
+            'rubygem-fluentd',
+        ] %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
 
@@ -50,7 +67,7 @@ COPY extend_start.sh /usr/local/bin/kolla_extend_start
     'fluent-plugin-rewrite-tag-filter',
 ] %}
 
-{{ macros.install_fluent_plugins(fluentd_plugins | customizable("plugins")) }}
+{{ macros.install_fluent_plugins(fluentd_plugins | customizable("plugins"), gem_cmd=fluentd_gem_cmd, set_nofile=fluentd_set_nofile) }}
 
 {% endblock %}
 

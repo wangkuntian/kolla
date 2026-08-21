@@ -31,6 +31,16 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
         'radvd',
         'uuid'
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set neutron_base_packages = neutron_base_packages | reject(
+            'equalto', 'openvswitch${KOLLA_RPM_OVS_VERSION}') | reject(
+            'equalto', 'python3-openvswitch${KOLLA_RPM_OVS_VERSION}') | list %}
+        {% set neutron_base_packages = neutron_base_packages + [
+            'iptables-nft',
+            'openvswitch',
+            'python3-openvswitch'
+        ] %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
 

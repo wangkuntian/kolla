@@ -9,6 +9,9 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 
 {% if base_package_type == 'rpm' %}
 {{ macros.enable_extra_repos(['epel']) }}
+{% if base_distro == 'openeuler' %}
+{{ macros.enable_extra_repos(['valkey']) }}
+{% endif %}
     {% set valkey_sentinel_packages = ['valkey'] %}
 {% elif base_package_type == 'deb' %}
     {% set valkey_sentinel_packages = ['valkey-sentinel'] %}

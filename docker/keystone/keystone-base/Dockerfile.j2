@@ -18,6 +18,9 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
         'cyrus-sasl-devel',
         'openldap-devel',
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set keystone_base_packages = keystone_base_packages | reject('equalto', 'mod_auth_mellon') | list %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
     {% set keystone_base_packages = [

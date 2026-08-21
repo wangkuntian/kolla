@@ -10,6 +10,11 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
 {% set neutron_mlnx_agent_packages = [
     'python3-libvirt',
 ] %}
+{% if base_distro == 'openeuler' %}
+    {% set neutron_mlnx_agent_packages = neutron_mlnx_agent_packages + [
+        'zeromq-devel',
+    ] %}
+{% endif %}
 
 {{ macros.install_packages(neutron_mlnx_agent_packages | customizable("packages")) }}
 
@@ -17,7 +22,13 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
     'networking-mlnx',
 ] %}
 
-RUN {{ macros.install_pip(neutron_mlnx_agent_pip_packages | customizable("pip_packages")) }}
+{# NOTE(hrw): pyzmq 20 fails to build while 19.* and 21.* build fine. #}
+{% set neutron_mlnx_agent_pyzmq_version = "21.*" %}
+{% if base_distro == 'openeuler' %}
+    {% set neutron_mlnx_agent_pyzmq_version = "25.*" %}
+{% endif %}
+RUN {{ macros.upper_constraints_version_change("pyzmq", "20.0.0", neutron_mlnx_agent_pyzmq_version) }} \
+    && {% if base_distro == 'openeuler' %}ZMQ_PREFIX=/usr {% endif %}{{ macros.install_pip(neutron_mlnx_agent_pip_packages | customizable("pip_packages")) }}
 
 {{ macros.kolla_patch_sources() }}
 

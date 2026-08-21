@@ -17,6 +17,12 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
             'openvswitch${KOLLA_RPM_OVS_VERSION}',
             'python3-openvswitch${KOLLA_RPM_OVS_VERSION}'
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set nova_base_packages = [
+            'openvswitch',
+            'python3-openvswitch'
+        ] %}
+    {% endif %}
     {% if base_arch == 'x86_64' %}
         {% set nova_base_packages = nova_base_packages + [
             'edk2-ovmf'

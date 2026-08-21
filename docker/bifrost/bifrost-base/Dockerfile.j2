@@ -34,6 +34,12 @@ COPY build_arg.yml /tmp/build_arg.yml
 
 RUN mkdir -p /requirements \
     && curl -o /requirements/upper-constraints.txt ${UPPER_CONSTRAINTS_FILE:-https://releases.openstack.org/constraints/upper/{{ openstack_release }}} \
+    {% if base_distro == 'openeuler' -%}
+    && printf '%s\n' \
+        'efi_distro: openEuler' \
+        'shim_efi_package: shim' \
+        >> /tmp/build_arg.yml \
+    {% endif -%}
     && python3 -m venv --system-site-packages {{ venv_path }} \
     && ln -s bifrost-base-source/* bifrost \
     && {{ macros.install_pip(['pip', 'wheel', 'setuptools']) }} \
@@ -45,12 +51,22 @@ WORKDIR /bifrost
 ENV ANSIBLE_GATHER_TIMEOUT=30
 
 {% block bifrost_ansible_install %}
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
 {%- if base_package_type == 'deb' %}
 RUN apt-get --error-on=any update && \
 {%- else %}
 RUN echo " " && \
 {%- endif %}
-    bash -c '$VENV/bin/pip install "ansible>=12,<14" && \
+    bash -c 'export http_proxy="${http_proxy:-${HTTP_PROXY:-}}" && \
+    export https_proxy="${https_proxy:-${HTTPS_PROXY:-}}" && \
+    export no_proxy="${no_proxy:-${NO_PROXY:-}}" && \
+    sed -i "/dest: .*oras_.*linux_.*tar.gz/a\\    timeout: 300" /bifrost/playbooks/roles/bifrost-registry-install/tasks/install_oras.yml && \
+    $VENV/bin/pip install "ansible>=12,<14" && \
     $VENV/bin/ansible-galaxy collection install -r /bifrost/ansible-collections-requirements.yml && \
     $VENV/bin/ansible-playbook -vvvv -i /bifrost/playbooks/inventory/target \
     /bifrost/playbooks/install.yaml \

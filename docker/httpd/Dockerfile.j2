@@ -17,6 +17,14 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
         'mod_auth_openidc',
         'mod_proxy_uwsgi'
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set apache_packages = [
+            'httpd',
+            'mod_ssl',
+            'mod_auth_openidc',
+            'mod_proxy_uwsgi'
+        ] %}
+    {% endif %}
 {% elif base_package_type == 'deb' %}
     {% set apache_packages = [
         'apache2',

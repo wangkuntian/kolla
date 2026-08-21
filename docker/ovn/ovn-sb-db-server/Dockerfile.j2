@@ -11,6 +11,11 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
     {% set ovn_sb_db_server_packages = [
         'ovn${KOLLA_RPM_OVN_VERSION}-central',
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set ovn_sb_db_server_packages = [
+            'ovn-central',
+        ] %}
+    {% endif %}
 
 {% elif base_package_type == 'deb' %}
     {% set ovn_sb_db_server_packages = [

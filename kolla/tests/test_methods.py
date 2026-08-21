@@ -82,6 +82,137 @@ class MethodsTest(base.TestCase):
         expectCmd += ">>/etc/yum.repos.d/grafana.repo"
         self.assertEqual(expectCmd, result)
 
+    def test_enable_repos_missing_distro_repo_data(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'missingdistro',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['influxdb'],
+                                      'enable')
+        expectCmd = ''
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_influxdb(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['influxdb'],
+                                      'enable')
+        expectCmd = 'RUN dnf config-manager --enable influxdb || true'
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_epel_skipped(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['epel'], 'enable')
+        expectCmd = ''
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_docker_ce(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['docker-ce'], 'enable')
+        self.assertIn('https://download.docker.com/linux/centos/9/'
+                      '$basearch/stable', result)
+        self.assertNotIn('$releasever', result)
+
+    def test_enable_repos_openeuler_epel_skipped_without_trailing_and(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['crb', 'epel'],
+                                      'enable')
+        expectCmd = 'RUN dnf config-manager --enable crb || true'
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_mariadb_skipped(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['mariadb'], 'enable')
+        expectCmd = ''
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_proxysql(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['proxysql'], 'enable')
+        expectCmd = "RUN echo '[proxysql]' >/etc/yum.repos.d/proxysql.repo"
+        expectCmd += " && echo 'name=proxysql' "
+        expectCmd += ">>/etc/yum.repos.d/proxysql.repo && "
+        expectCmd += "echo 'enabled=1' >>/etc/yum.repos.d/proxysql.repo && "
+        expectCmd += "echo 'gpgkey=https://repo.proxysql.com/ProxySQL/"
+        expectCmd += "proxysql-3.0.x/repo_pub_key' "
+        expectCmd += ">>/etc/yum.repos.d/proxysql.repo && "
+        expectCmd += "echo 'baseurl=https://repo.proxysql.com/ProxySQL/"
+        expectCmd += "proxysql-3.0.x/almalinux/9' "
+        expectCmd += ">>/etc/yum.repos.d/proxysql.repo"
+        self.assertEqual(expectCmd, result)
+
+    def test_enable_repos_openeuler_opensearch_dashboards(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars,
+                                      ['opensearch-dashboards'],
+                                      'enable')
+        self.assertIn('opensearch-dashboards-3.x', result)
+        self.assertIn('https://artifacts.opensearch.org/releases/bundle/'
+                      'opensearch-dashboards/3.x/yum', result)
+
+    def test_enable_repos_openeuler_opensearch(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars, ['opensearch'],
+                                      'enable')
+        self.assertIn('opensearch-3.x', result)
+        self.assertIn('https://artifacts.opensearch.org/releases/bundle/'
+                      'opensearch/3.x/yum', result)
+
+    def test_enable_repos_openeuler_openstack_antelope(self):
+        template_vars = {
+            'base_arch': 'x86_64',
+            'base_distro': 'openeuler',
+            'base_package_type': 'rpm',
+        }
+
+        result = methods.handle_repos(template_vars,
+                                      ['openstack-antelope'],
+                                      'enable')
+        self.assertIn('openstack-antelope', result)
+        self.assertIn('EPOL/multi_version/OpenStack/Antelope/$basearch',
+                      result)
+
     def test_enable_repos_centos_multiple(self):
         template_vars = {
             "base_arch": "x86_64",

@@ -32,9 +32,9 @@
 {% endif %}
 {%- endmacro %}
 
-{% macro install_pip(packages, constraints=true, python_version='3') %}
+{% macro install_pip(packages, constraints=true, python_version='3', extra_args='', env='') %}
 {%- if packages is sequence and packages|length > 0 -%}
-    python{{ python_version }} -m pip --no-cache-dir install --upgrade{{ ' ' }}
+    {% if env %}{{ env }} {% endif %}python{{ python_version }} -m pip --no-cache-dir install --upgrade{% if extra_args %} {{ extra_args }}{% endif %}{{ ' ' }}
     {%- if constraints %}-c /requirements/upper-constraints.txt {% endif -%}
     {{ packages | join(' ') }}
 {%- else -%}
@@ -61,10 +61,10 @@ RUN usermod --append --home {{ homedir }} --groups kolla {{ name }} \
     && chown -R {{ user.uid }}:{{ user.gid }} {{ homedir }}
 {% endmacro %}
 
-{% macro install_fluent_plugins(plugins, chain=False) -%}
+{% macro install_fluent_plugins(plugins, chain=False, gem_cmd='fluent-gem', set_nofile=True) -%}
 {% if plugins is defined and plugins|length > 0 -%}
     {% if not chain -%} RUN {% endif -%}
-    ulimit -n 1024 && fluent-gem install {{ plugins | join(' ') }}
+    {% if set_nofile -%} ulimit -n 65536 && {% endif -%}{{ gem_cmd }} install {{ plugins | join(' ') }}
 {%- endif %}
 {%- endmacro %}
 

@@ -14,6 +14,12 @@ LABEL maintainer="{{ maintainer }}" name="{{ image_name }}" build-date="{{ build
         'keepalived',
         'MariaDB-client'
     ] %}
+    {% if base_distro == 'openeuler' %}
+        {% set keepalived_packages = [
+            'keepalived',
+            'mariadb'
+        ] %}
+    {% endif %}
 {% elif base_package_type == 'deb' %}
     {% set keepalived_packages = [
         'keepalived',
